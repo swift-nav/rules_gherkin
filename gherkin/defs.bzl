@@ -52,12 +52,15 @@ def _gherkin_test(ctx):
     wire_socket = ctx.attr.steps[CucumberStepsInfo].wire_socket
     ctx.actions.write(cucumber_wire_config, "unix: " + wire_socket)
 
+    # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
+    cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
+
     ctx.actions.expand_template(
         output = ctx.outputs.test,
         template = ctx.file._template,
         substitutions = {
             "{STEPS}": ctx.file.steps.short_path,
-            "{CUCUMBER_RUBY}": ctx.file._cucumber_ruby.short_path,
+            "{CUCUMBER_RUBY}": cucumber_executable.short_path,
             "{FEATURE_DIR}": "/".join([ctx.workspace_name, ctx.label.package]),  # TODO: Change this once it's working
         },
     )
@@ -95,7 +98,8 @@ gherkin_test = rule(
         "_cucumber_ruby": attr.label(
             doc = "The path to cucumber ruby",
             default = Label("@rules_gherkin//:cucumber_ruby"),
-            allow_single_file = True,
+            executable = True,
+            cfg = "exec",
         ),
     },
     outputs = {"test": "%{name}.sh"},

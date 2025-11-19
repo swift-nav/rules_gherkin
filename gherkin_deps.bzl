@@ -31,11 +31,10 @@ def gherkin_deps():
             sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
         )
     if "cucumber_cpp" not in native.existing_rules():
-        git_repository(
+        # Use local cucumber-cpp with custom Bazel BUILD files
+        native.local_repository(
             name = "cucumber_cpp",
-            commit = "5bff68018ac7420a13e92998fd91b8317037e3f4",
-            remote = "https://github.com/silvergasp/cucumber-cpp.git",
-            shallow_since = "1610936570 +0800",
+            path = "third_party/cucumber-cpp",
         )
     if "rules_pkg" not in native.existing_rules():
         http_archive(
