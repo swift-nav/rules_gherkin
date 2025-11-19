@@ -16,7 +16,7 @@ bazel_dep(name = "rules_ruby", version = "0.21.1", repo_name = "bazelruby_rules_
 ruby = use_extension("@bazelruby_rules_ruby//ruby:extensions.bzl", "ruby")
 ruby.toolchain(
     name = "ruby",
-    version = "3.3.0",  # Use system Ruby or specify version
+    version = "jruby-9.4.5.0",  # Use system Ruby or specify version
 )
 # Note: cucumber bundle is defined in the root MODULE.bazel
 # because bundle_fetch requires paths relative to main workspace

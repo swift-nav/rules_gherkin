@@ -50,7 +50,11 @@ gherkin_library = rule(
 def _gherkin_test(ctx):
     cucumber_wire_config = ctx.actions.declare_file("step_definitions/cucumber.wire")
     wire_socket = ctx.attr.steps[CucumberStepsInfo].wire_socket
-    ctx.actions.write(cucumber_wire_config, "unix: " + wire_socket)
+    # ctx.actions.write(cucumber_wire_config, "unix: " + wire_socket)
+    ctx.actions.write(cucumber_wire_config, "host: localhost" + "\n" + "port: 3902" + "\n")
+
+    # support_for_wire = ctx.actions.declare_file("support/wire.rb")
+    # ctx.actions.write(support_for_wire, "require 'cucumber/wire'\n")
 
     # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
     cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable

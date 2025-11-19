@@ -1,2 +1,7 @@
 #!/bin/bash
-{SERVER} -u {SOCKET}
+echo foo
+echo $(pwd)
+echo foo2
+echo {SERVER}
+
+{SERVER} --verbose
