@@ -48,28 +48,36 @@ gherkin_library = rule(
 )
 
 def _gherkin_test(ctx):
-    cucumber_wire_config = ctx.actions.declare_file("step_definitions/cucumber.wire")
+    cucumber_wire_config = ctx.actions.declare_file("features/step_definitions/calculator_step.wire")
     wire_socket = ctx.attr.steps[CucumberStepsInfo].wire_socket
     ctx.actions.write(cucumber_wire_config, "unix: " + wire_socket)
+
+    support_for_wire = ctx.actions.declare_file("features/support/require_wire.rb")
+    ctx.actions.write(support_for_wire, "require 'cucumber/wire'")
+
+    # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
+    cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
+
+    feature_dir = "/".join([ctx.workspace_name, ctx.label.package])
 
     ctx.actions.expand_template(
         output = ctx.outputs.test,
         template = ctx.file._template,
         substitutions = {
             "{STEPS}": ctx.file.steps.short_path,
-            "{CUCUMBER_RUBY}": ctx.file._cucumber_ruby.short_path,
-            "{FEATURE_DIR}": "/".join([ctx.workspace_name, ctx.label.package]),  # TODO: Change this once it's working
+            "{CUCUMBER_RUBY}": cucumber_executable.short_path,
+            "{FEATURE_DIR}": feature_dir,
         },
     )
     feature_specs = _get_transitive_srcs(None, ctx.attr.deps).to_list()
     feature_files = []
     for spec in feature_specs:
         spec_basename = spec.files.to_list()[0].basename
-        f = ctx.actions.declare_file(spec_basename)
+        f = ctx.actions.declare_file("features/" + spec_basename)
         feature_files.append(f)
         ctx.actions.symlink(output = f, target_file = spec.files.to_list()[0])
 
-    runfiles = ctx.runfiles(files = [ctx.file.steps, cucumber_wire_config] + feature_files)
+    runfiles = ctx.runfiles(files = [ctx.file.steps, cucumber_wire_config, support_for_wire] + feature_files)
     runfiles = runfiles.merge(ctx.attr.steps.default_runfiles)
     runfiles = runfiles.merge(ctx.attr._cucumber_ruby.default_runfiles)
 
@@ -95,7 +103,8 @@ gherkin_test = rule(
         "_cucumber_ruby": attr.label(
             doc = "The path to cucumber ruby",
             default = Label("@rules_gherkin//:cucumber_ruby"),
-            allow_single_file = True,
+            executable = True,
+            cfg = "exec",
         ),
     },
     outputs = {"test": "%{name}.sh"},
