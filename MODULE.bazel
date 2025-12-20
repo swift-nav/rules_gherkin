@@ -9,24 +9,44 @@ bazel_dep(name = "rules_cc", version = "0.0.16")
 bazel_dep(name = "googletest", version = "1.16.0", repo_name = "gtest")
 bazel_dep(name = "rules_pkg", version = "1.0.1")
 
-# Ruby rules for cucumber CLI
-bazel_dep(name = "rules_ruby", version = "0.21.1", repo_name = "bazelruby_rules_ruby")
-
 # Ruby SDK setup
+bazel_dep(name = "rules_ruby", version = "0.21.1", dev_dependency = True, repo_name = "bazelruby_rules_ruby")
+
+# Ruby gem bundle for cucumber CLI (must be in root MODULE.bazel)
 ruby = use_extension("@bazelruby_rules_ruby//ruby:extensions.bzl", "ruby")
 ruby.toolchain(
     name = "ruby",
-    version = "jruby-9.4.5.0",  # Use system Ruby or specify version
+    version = "jruby-9.4.5.0",
 )
-# Note: cucumber bundle is defined in the root MODULE.bazel
-# because bundle_fetch requires paths relative to main workspace
-# We import it here to make it visible to this module
+ruby.bundle_fetch(
+    name = "cucumber",
+    gemfile = "//:Gemfile",
+    gemfile_lock = "//:Gemfile.lock",
+)
 use_repo(ruby, "ruby", "ruby_toolchains", "cucumber")
+register_toolchains("@ruby_toolchains//:all")
 
-register_toolchains("@ruby_toolchains//...")
+
+bazel_dep(name = "toolchains_llvm", version = "1.6.0", dev_dependency = True)
+
+# Configure and register the toolchain.
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+   llvm_version = "20.1.7",
+)
+
+use_repo(llvm, "llvm_toolchain")
+# use_repo(llvm, "llvm_toolchain_llvm") # if you depend on specific tools in scripts
+
+register_toolchains("@llvm_toolchain//:all")
+
 
 # Boost is not needed - we use GTestDriver not BoostDriver
 # bazel_dep(name = "rules_boost", version = "0.4.1")
 
 # cucumber-cpp will be provided by local_path_override in root MODULE.bazel
 bazel_dep(name = "cucumber_cpp", version = "0.6.0")
+local_path_override(
+    module_name = "cucumber_cpp",
+    path = "../cucumber-cpp",
+)
