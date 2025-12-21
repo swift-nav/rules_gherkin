@@ -48,13 +48,24 @@ gherkin_library = rule(
 )
 
 def _gherkin_test(ctx):
-    cucumber_wire_config = ctx.actions.declare_file("step_definitions/cucumber.wire")
+    cucumber_wire_config = ctx.actions.declare_file("step_definitions/calculator_step.wire")
     wire_socket = ctx.attr.steps[CucumberStepsInfo].wire_socket
-    # ctx.actions.write(cucumber_wire_config, "unix: " + wire_socket)
-    ctx.actions.write(cucumber_wire_config, "host: localhost" + "\n" + "port: 3902" + "\n")
+    #ctx.actions.write(cucumber_wire_config, "unix: " + wire_socket)
+    ctx.actions.write(cucumber_wire_config, "host: 127.0.0.1" + "\n" + "port: 3902" + "\n")
 
-    # support_for_wire = ctx.actions.declare_file("support/wire.rb")
-    # ctx.actions.write(support_for_wire, "require 'cucumber/wire'\n")
+    print("Wirefile: " + cucumber_wire_config.short_path)
+
+    support_for_wire = ctx.actions.declare_file("support/require_wire.rb")
+    ctx.actions.write(support_for_wire, """
+    require 'cucumber/wire'
+    puts "Hello World"
+
+    puts "--- Bazel Sandbox Check ---"
+    puts "Current Dir: #{Dir.pwd}"
+    puts "All files in features: #{Dir.glob('**/*.wire')}"
+    puts "---------------------------"
+
+    """)
 
     # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
     cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
@@ -76,7 +87,7 @@ def _gherkin_test(ctx):
         feature_files.append(f)
         ctx.actions.symlink(output = f, target_file = spec.files.to_list()[0])
 
-    runfiles = ctx.runfiles(files = [ctx.file.steps, cucumber_wire_config] + feature_files)
+    runfiles = ctx.runfiles(files = [ctx.file.steps, cucumber_wire_config, support_for_wire] + feature_files)
     runfiles = runfiles.merge(ctx.attr.steps.default_runfiles)
     runfiles = runfiles.merge(ctx.attr._cucumber_ruby.default_runfiles)
 
