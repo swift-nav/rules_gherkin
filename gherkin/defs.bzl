@@ -51,20 +51,9 @@ def _gherkin_test(ctx):
     cucumber_wire_config = ctx.actions.declare_file("step_definitions/calculator_step.wire")
     wire_socket = ctx.attr.steps[CucumberStepsInfo].wire_socket
     ctx.actions.write(cucumber_wire_config, "unix: " + wire_socket)
-    #ctx.actions.write(cucumber_wire_config, "host: 127.0.0.1" + "\n" + "port: 3902" + "\n")
-
-    print("Wirefile: " + cucumber_wire_config.short_path)
 
     support_for_wire = ctx.actions.declare_file("support/require_wire.rb")
-    ctx.actions.write(support_for_wire, 
-"""
-begin
-  require 'cucumber/wire'
-  puts "Wire gem is available"
-rescue LoadError => e
-  puts "Wire gem is not available: #{e.message}"
-end
-""")
+    ctx.actions.write(support_for_wire, "require 'cucumber/wire'")
 
     # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
     cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
