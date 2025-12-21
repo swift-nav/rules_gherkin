@@ -1,2 +1,2 @@
 #!/bin/bash
-{SERVER} --verbose
+{SERVER} -u {SOCKET} --verbose
