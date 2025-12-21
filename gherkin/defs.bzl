@@ -70,7 +70,6 @@ end
     cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
 
     feature_dir = "/".join([ctx.workspace_name, "examples/Calc"]) # ctx.label.package
-    print("Feature dir:  " + feature_dir)
 
     ctx.actions.expand_template(
         output = ctx.outputs.test,
