@@ -48,17 +48,17 @@ gherkin_library = rule(
 )
 
 def _gherkin_test(ctx):
-    cucumber_wire_config = ctx.actions.declare_file("step_definitions/calculator_step.wire")
+    cucumber_wire_config = ctx.actions.declare_file("features/step_definitions/calculator_step.wire")
     wire_socket = ctx.attr.steps[CucumberStepsInfo].wire_socket
     ctx.actions.write(cucumber_wire_config, "unix: " + wire_socket)
 
-    support_for_wire = ctx.actions.declare_file("support/require_wire.rb")
+    support_for_wire = ctx.actions.declare_file("features/support/require_wire.rb")
     ctx.actions.write(support_for_wire, "require 'cucumber/wire'")
 
     # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
     cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
 
-    feature_dir = "/".join([ctx.workspace_name, "examples/Calc"]) # ctx.label.package
+    feature_dir = "/".join([ctx.workspace_name, ctx.label.package])
 
     ctx.actions.expand_template(
         output = ctx.outputs.test,
@@ -73,7 +73,7 @@ def _gherkin_test(ctx):
     feature_files = []
     for spec in feature_specs:
         spec_basename = spec.files.to_list()[0].basename
-        f = ctx.actions.declare_file(spec_basename)
+        f = ctx.actions.declare_file("features/" + spec_basename)
         feature_files.append(f)
         ctx.actions.symlink(output = f, target_file = spec.files.to_list()[0])
 
