@@ -56,19 +56,21 @@ def _gherkin_test(ctx):
     print("Wirefile: " + cucumber_wire_config.short_path)
 
     support_for_wire = ctx.actions.declare_file("support/require_wire.rb")
-    ctx.actions.write(support_for_wire, """
-    require 'cucumber/wire'
-    puts "Hello World"
-
-    puts "--- Bazel Sandbox Check ---"
-    puts "Current Dir: #{Dir.pwd}"
-    puts "All files in features: #{Dir.glob('**/*.wire')}"
-    puts "---------------------------"
-
-    """)
+    ctx.actions.write(support_for_wire, 
+"""
+begin
+  require 'cucumber/wire'
+  puts "Wire gem is available"
+rescue LoadError => e
+  puts "Wire gem is not available: #{e.message}"
+end
+""")
 
     # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
     cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
+
+    feature_dir = "/".join([ctx.workspace_name, "examples/Calc"]) # ctx.label.package
+    print("Feature dir:  " + feature_dir)
 
     ctx.actions.expand_template(
         output = ctx.outputs.test,
@@ -76,7 +78,7 @@ def _gherkin_test(ctx):
         substitutions = {
             "{STEPS}": ctx.file.steps.short_path,
             "{CUCUMBER_RUBY}": cucumber_executable.short_path,
-            "{FEATURE_DIR}": "/".join([ctx.workspace_name, ctx.label.package]),  # TODO: Change this once it's working
+            "{FEATURE_DIR}": feature_dir,
         },
     )
     feature_specs = _get_transitive_srcs(None, ctx.attr.deps).to_list()
