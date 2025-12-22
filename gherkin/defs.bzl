@@ -48,9 +48,18 @@ gherkin_library = rule(
 )
 
 def _gherkin_test(ctx):
-    cucumber_wire_config = ctx.actions.declare_file("features/step_definitions/calculator_step.wire")
-    wire_socket = ctx.attr.steps[CucumberStepsInfo].wire_socket
-    ctx.actions.write(cucumber_wire_config, "unix: " + wire_socket)
+    # Generate unique socket path based on TEST label, not steps label
+    # This ensures each test gets its own socket for parallel execution
+    test_label = ctx.label
+    unique_socket = "/tmp/bazel_gherkin-{}-{}-{}.sock".format(
+        ctx.workspace_name,
+        test_label.package.replace("/", "_"),
+        test_label.name
+    )
+
+    # Create wire config with unique filename per test
+    cucumber_wire_config = ctx.actions.declare_file("features/step_definitions/{}.wire".format(test_label.name))
+    ctx.actions.write(cucumber_wire_config, "unix: " + unique_socket)
 
     support_for_wire = ctx.actions.declare_file("features/support/require_wire.rb")
     ctx.actions.write(support_for_wire, "require 'cucumber/wire'")
@@ -67,6 +76,7 @@ def _gherkin_test(ctx):
             "{STEPS}": ctx.file.steps.short_path,
             "{CUCUMBER_RUBY}": cucumber_executable.short_path,
             "{FEATURE_DIR}": feature_dir,
+            "{SOCKET}": unique_socket,
         },
     )
     feature_specs = _get_transitive_srcs(None, ctx.attr.deps).to_list()
