@@ -1,4 +1,4 @@
-load("//gherkin:defs.bzl", "gherkin_library", "gherkin_test")
+load("@rules_gherkin//gherkin:defs.bzl", "gherkin_library", "gherkin_test")
 
 gherkin_library(
     name = "feature_specs",
@@ -7,6 +7,6 @@ gherkin_library(
 
 gherkin_test(
     name = "calc_test",
-    steps = "//examples/Calc/features/step_definitions:calculator_steps",
+    steps = "//Calc/features/step_definitions:calculator_steps",
     deps = [":feature_specs"],
 )

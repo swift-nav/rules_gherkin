@@ -1,0 +1,4 @@
+#common --registry=file:///Users/martinaltenburg/git_repos/bazel-central-registry
+common --registry=https://raw.githubusercontent.com/martin4861/bazel-central-registry/refs/heads/add-cucumber-cpp/
+
+
