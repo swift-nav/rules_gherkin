@@ -123,6 +123,14 @@ def _cc_wire_gherkin_steps(ctx):
         },
     )
     runfiles = ctx.runfiles(files = [ctx.file.cc_impl])
+
+    # Merge runfiles from the cc_impl target
+    runfiles = runfiles.merge(ctx.attr.cc_impl[DefaultInfo].default_runfiles)
+
+    # Merge runfiles from data attribute
+    for data_target in ctx.attr.data:
+        runfiles = runfiles.merge(data_target[DefaultInfo].default_runfiles)
+
     return [
         DefaultInfo(executable = ctx.outputs.steps_wire_server, runfiles = runfiles),
         CucumberStepsInfo(wire_socket = socket_path),
@@ -136,6 +144,10 @@ _cc_gherkin_steps = rule(
             executable = True,
             cfg = "target",
             allow_single_file = True,
+        ),
+        "data": attr.label_list(
+            doc = "Runtime data files required by the wire server",
+            allow_files = True,
         ),
         "_template": attr.label(
             doc = "The template specification for the executable",
@@ -153,6 +165,8 @@ def cc_gherkin_steps(**attrs):
     binary_name = name + "_steps_binary"
 
     visibility = attrs.get("visibility", ["//visibility:private"])
+    data = attrs.get("data", [])
+
     cc_binary(
         name = binary_name,
         **attrs
@@ -160,5 +174,6 @@ def cc_gherkin_steps(**attrs):
     _cc_gherkin_steps(
         name = name,
         cc_impl = ":" + binary_name,
+        data = data,
         visibility = visibility,
     )
