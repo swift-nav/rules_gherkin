@@ -9,6 +9,6 @@ cc_gherkin_steps(
     deps = [
         "//examples/Calc/src:calculator",
         "@cucumber-cpp//:cucumber_main",
-        "@gtest",
+        "@googletest//:gtest_main",
     ],
 )
