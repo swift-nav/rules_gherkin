@@ -8,7 +8,7 @@ cc_gherkin_steps(
     visibility = ["//visibility:public"],
     deps = [
         "//examples/Calc/src:calculator",
-        "@cucumber_cpp//:cucumber_main",
+        "@cucumber-cpp//:cucumber_main",
         "@gtest",
     ],
 )

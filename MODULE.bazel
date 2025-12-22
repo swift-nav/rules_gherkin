@@ -26,7 +26,6 @@ ruby.bundle_fetch(
 use_repo(ruby, "ruby", "ruby_toolchains", "cucumber")
 register_toolchains("@ruby_toolchains//:all")
 
-
 bazel_dep(name = "toolchains_llvm", version = "1.6.0", dev_dependency = True)
 
 # Configure and register the toolchain.
@@ -40,13 +39,5 @@ use_repo(llvm, "llvm_toolchain")
 
 register_toolchains("@llvm_toolchain//:all")
 
+bazel_dep(name = "cucumber-cpp", version = "0.8.0")
 
-# Boost is not needed - we use GTestDriver not BoostDriver
-# bazel_dep(name = "rules_boost", version = "0.4.1")
-
-# cucumber-cpp will be provided by local_path_override in root MODULE.bazel
-bazel_dep(name = "cucumber_cpp", version = "0.6.0")
-local_path_override(
-    module_name = "cucumber_cpp",
-    path = "../cucumber-cpp",
-)
