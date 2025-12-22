@@ -3,11 +3,7 @@ module(
     version = "0.1.0",
 )
 
-bazel_dep(name = "bazel_skylib", version = "1.7.1")
-bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "rules_cc", version = "0.0.16")
-bazel_dep(name = "googletest", version = "1.16.0")
-bazel_dep(name = "rules_pkg", version = "1.0.1")
 
 # Ruby SDK setup
 # Note: rules_ruby bazel_dep needed for rb_binary in BUILD file
@@ -18,18 +14,4 @@ bazel_dep(name = "rules_ruby", version = "0.21.1")
 ruby = use_extension("@rules_ruby//ruby:extensions.bzl", "ruby")
 use_repo(ruby, "cucumber")
 
-# bazel_dep(name = "toolchains_llvm", version = "1.6.0", dev_dependency = True)
-
-# # Configure and register the toolchain.
-# llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
-# llvm.toolchain(
-#    llvm_version = "20.1.7",
-# )
-
-# use_repo(llvm, "llvm_toolchain")
-# # use_repo(llvm, "llvm_toolchain_llvm") # if you depend on specific tools in scripts
-
-# register_toolchains("@llvm_toolchain//:all")
-
 bazel_dep(name = "cucumber-cpp", version = "0.8.0")
-
