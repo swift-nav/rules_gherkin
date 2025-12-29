@@ -69,6 +69,8 @@ def _gherkin_test(ctx):
 
     feature_dir = "/".join([ctx.workspace_name, ctx.label.package])
 
+    additional_cucumber_args = " ".join(ctx.attr.additional_cucumber_args)
+
     ctx.actions.expand_template(
         output = ctx.outputs.test,
         template = ctx.file._template,
@@ -77,6 +79,7 @@ def _gherkin_test(ctx):
             "{CUCUMBER_RUBY}": cucumber_executable.short_path,
             "{FEATURE_DIR}": feature_dir,
             "{SOCKET}": unique_socket,
+            "{ADDITIONAL_CUCUMBER_ARGS}": additional_cucumber_args,
         },
     )
     feature_specs = _get_transitive_srcs(None, ctx.attr.deps).to_list()
@@ -104,6 +107,11 @@ gherkin_test = rule(
             doc = "The steps implementation to test the gherkin features against",
             providers = [CucumberStepsInfo],
             allow_single_file = True,
+        ),
+        "additional_cucumber_args": attr.string_list(
+            doc = "Additional arguments, that shall be passed to the cucumber ruby executable",
+            allow_empty = True,
+            default = ["--publish-quiet"],
         ),
         "_template": attr.label(
             doc = "The template specification for the executable",
