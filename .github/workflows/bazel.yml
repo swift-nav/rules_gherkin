@@ -11,20 +11,18 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v5
 
-      - uses: bazel-contrib/setup-bazel@0.15.0
-
-      - name: Mount bazel cache
-        uses: actions/cache@v4
+      - uses: bazel-contrib/setup-bazel@0.16.0
         with:
-          path: "~/.cache/bazel"
-          key: bazel
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
 
       - name: Test
         run: |
           cd examples
-          bazel test //... --test_output=all  
+          bazel test //... --test_output=all
 
       - name: Test Json
         run: |
           cd examples
-          bazel test --config=json //... --test_output=all  
+          bazel test --config=json //... --test_output=all
