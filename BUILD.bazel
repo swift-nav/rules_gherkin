@@ -13,7 +13,6 @@ string_flag(
         "json",
         "html",
         "junit",
-        "progress",
     ],
     visibility = ["//visibility:public"],
 )

@@ -5,7 +5,6 @@
 
 using cucumber::ScenarioScope;
 
-
 struct CalcCtx {
   Calculator calc;
   double result;
