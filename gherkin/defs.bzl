@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 GherkinInfo = provider(
     "Gherkin info",
@@ -48,28 +49,60 @@ gherkin_library = rule(
 )
 
 def _gherkin_test(ctx):
-    cucumber_wire_config = ctx.actions.declare_file("step_definitions/cucumber.wire")
-    wire_socket = ctx.attr.steps[CucumberStepsInfo].wire_socket
-    ctx.actions.write(cucumber_wire_config, "unix: " + wire_socket)
+    # Generate unique socket path based on TEST label, not steps label
+    # This ensures each test gets its own socket for parallel execution
+    test_label = ctx.label
+    unique_socket = "/tmp/bazel_gherkin-{}-{}-{}.sock".format(
+        ctx.workspace_name,
+        test_label.package.replace("/", "_"),
+        test_label.name
+    )
+
+    # Create wire config with unique filename per test
+    cucumber_wire_config = ctx.actions.declare_file("features/step_definitions/{}.wire".format(test_label.name))
+    ctx.actions.write(cucumber_wire_config, "unix: " + unique_socket)
+
+    support_for_wire = ctx.actions.declare_file("features/support/require_wire.rb")
+    ctx.actions.write(support_for_wire, "require 'cucumber/wire'")
+    
+
+    # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
+    cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
+
+    feature_dir = "/".join([ctx.workspace_name, ctx.label.package])
+
+    # Read the cucumber format from the build setting
+    cucumber_format = ctx.attr._cucumber_format[BuildSettingInfo].value
+
+    # Create unique output filename for test results (will be written to TEST_UNDECLARED_OUTPUTS_DIR)
+    output_filename = "{}_output_{}.txt".format(test_label.name, cucumber_format)
+
+    # Build cucumber args with format flag
+    additional_cucumber_args = []
+    additional_cucumber_args.append("--format={}".format(cucumber_format))
+    additional_cucumber_args.append("--quiet")
 
     ctx.actions.expand_template(
         output = ctx.outputs.test,
         template = ctx.file._template,
         substitutions = {
             "{STEPS}": ctx.file.steps.short_path,
-            "{CUCUMBER_RUBY}": ctx.file._cucumber_ruby.short_path,
-            "{FEATURE_DIR}": "/".join([ctx.workspace_name, ctx.label.package]),  # TODO: Change this once it's working
+            "{CUCUMBER_RUBY}": cucumber_executable.short_path,
+            "{FEATURE_DIR}": feature_dir,
+            "{SOCKET}": unique_socket,
+            "{ADDITIONAL_CUCUMBER_ARGS}": " ".join(additional_cucumber_args),
+            "{OUTPUT_FILENAME}": output_filename,
         },
     )
     feature_specs = _get_transitive_srcs(None, ctx.attr.deps).to_list()
     feature_files = []
     for spec in feature_specs:
         spec_basename = spec.files.to_list()[0].basename
-        f = ctx.actions.declare_file(spec_basename)
+        f = ctx.actions.declare_file("features/" + spec_basename)
         feature_files.append(f)
         ctx.actions.symlink(output = f, target_file = spec.files.to_list()[0])
 
-    runfiles = ctx.runfiles(files = [ctx.file.steps, cucumber_wire_config] + feature_files)
+    runfiles = ctx.runfiles(files = [ctx.file.steps, cucumber_wire_config, support_for_wire] + feature_files)
     runfiles = runfiles.merge(ctx.attr.steps.default_runfiles)
     runfiles = runfiles.merge(ctx.attr._cucumber_ruby.default_runfiles)
 
@@ -95,7 +128,12 @@ gherkin_test = rule(
         "_cucumber_ruby": attr.label(
             doc = "The path to cucumber ruby",
             default = Label("@rules_gherkin//:cucumber_ruby"),
-            allow_single_file = True,
+            executable = True,
+            cfg = "exec",
+        ),
+        "_cucumber_format": attr.label(
+            doc = "The cucumber output format build setting",
+            default = Label("@rules_gherkin//:cucumber_format"),
         ),
     },
     outputs = {"test": "%{name}.sh"},
@@ -114,6 +152,14 @@ def _cc_wire_gherkin_steps(ctx):
         },
     )
     runfiles = ctx.runfiles(files = [ctx.file.cc_impl])
+
+    # Merge runfiles from the cc_impl target
+    runfiles = runfiles.merge(ctx.attr.cc_impl[DefaultInfo].default_runfiles)
+
+    # Merge runfiles from data attribute
+    for data_target in ctx.attr.data:
+        runfiles = runfiles.merge(data_target[DefaultInfo].default_runfiles)
+
     return [
         DefaultInfo(executable = ctx.outputs.steps_wire_server, runfiles = runfiles),
         CucumberStepsInfo(wire_socket = socket_path),
@@ -127,6 +173,10 @@ _cc_gherkin_steps = rule(
             executable = True,
             cfg = "target",
             allow_single_file = True,
+        ),
+        "data": attr.label_list(
+            doc = "Runtime data files required by the wire server",
+            allow_files = True,
         ),
         "_template": attr.label(
             doc = "The template specification for the executable",
@@ -144,6 +194,8 @@ def cc_gherkin_steps(**attrs):
     binary_name = name + "_steps_binary"
 
     visibility = attrs.get("visibility", ["//visibility:private"])
+    data = attrs.get("data", [])
+
     cc_binary(
         name = binary_name,
         **attrs
@@ -151,5 +203,6 @@ def cc_gherkin_steps(**attrs):
     _cc_gherkin_steps(
         name = name,
         cc_impl = ":" + binary_name,
+        data = data,
         visibility = visibility,
     )

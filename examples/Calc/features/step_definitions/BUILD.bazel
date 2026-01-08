@@ -1,0 +1,14 @@
+load("@rules_gherkin//gherkin:defs.bzl", "cc_gherkin_steps")
+
+cc_gherkin_steps(
+    name = "calculator_steps",
+    srcs = [
+        "CalculatorSteps.cpp",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//Calc/src:calculator",
+        "@cucumber-cpp//:cucumber-cpp",
+        "@googletest//:gtest_main",
+    ],
+)

@@ -1,0 +1,37 @@
+load("@rules_gherkin//gherkin:defs.bzl", "gherkin_library", "gherkin_test")
+
+# One lib for multiple feature files
+gherkin_library(
+    name = "feature_specs",
+    srcs = glob(["**/*.feature"]),
+)
+
+gherkin_test(
+    name = "calc_test",
+    steps = "//Calc/features/step_definitions:calculator_steps",
+    deps = [":feature_specs"],
+)
+
+# Seperate libs to test parallelization
+gherkin_library(
+    name = "addition_feature",
+    srcs = ["addition.feature"]
+)
+
+gherkin_test(
+    name = "addition_test",
+    steps = "//Calc/features/step_definitions:calculator_steps",
+    deps = [":addition_feature"],
+)
+
+gherkin_library(
+    name = "division_feature",
+    srcs = ["division.feature"]
+)
+
+gherkin_test(
+    name = "division_test",
+    steps = "//Calc/features/step_definitions:calculator_steps",
+    deps = [":division_feature"],
+)
+

@@ -3,25 +3,31 @@
 # rules_gherkin
 A set of bazel rules for BDD with [cucumber/gherkin](https://cucumber.io/).
 
-NOTE: This is alpha level software, the API may change without notice
+NOTE: This is alpha level software, the API may change without notice.
 
 ## Getting started
-Add the following to your WORKSPACE
+Add the following to your `MODULE.bazel` (see examples/MODULE.bazel):
 
 ``` python
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-git_repository(
-    name = "rules_gherkin",
-    commit = "ef361f40f9716ad8a3c6a8a21111bb80d4cbd927", # Update this to match latest commit
-    remote = "https://github.com/silvergasp/rules_gherkin.git"
-)
-load("@rules_gherkin//:gherkin_deps.bzl","gherkin_deps")
-gherkin_deps()
+bazel_dep(name = "rules_gherkin", version = "0.1.0")
+bazel_dep(name = "rules_ruby", version = "0.21.1")
 
-load("@rules_gherkin//:gherkin_workspace.bzl","gherkin_workspace")
-gherkin_workspace()
+ruby = use_extension("@rules_ruby//ruby:extensions.bzl", "ruby")
+ruby.toolchain(
+    name = "ruby",
+    version = "jruby-9.4.5.0",
+)
+ruby.bundle_fetch(
+    name = "cucumber",
+    gemfile = "//:Gemfile",
+    gemfile_lock = "//:Gemfile.lock",
+)
+use_repo(ruby, "cucumber", "ruby", "ruby_toolchains")
+
+register_toolchains("@ruby_toolchains//:all")
+
 ```
-Example BUILD file.
+Example `BUILD.bazel` file.
 
 ```python
 load("//gherkin:defs.bzl", "gherkin_library", "gherkin_test")
@@ -46,13 +52,11 @@ cc_gherkin_steps(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//examples/Calc/src:calculator",
-        "@cucumber_cpp//src:cucumber_main",
-        "@gtest",
+        "//Calc/src:calculator",
+        "@cucumber-cpp//:cucumber-cpp",
+        "@googletest//:gtest_main",
     ],
 )
-
-
 ```
 
 ## Attribution
