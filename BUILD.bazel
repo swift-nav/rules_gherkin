@@ -1,6 +1,28 @@
 load(
     "@rules_ruby//ruby:defs.bzl",
-    "rb_binary",  # Updated from ruby_binary in rules_ruby 0.21.1
+    "rb_binary",
+)
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+
+# Build setting for cucumber output format
+string_flag(
+    name = "cucumber_format",
+    build_setting_default = "pretty",
+    values = ["pretty", "json", "html", "junit", "progress"],
+    visibility = ["//visibility:public"],
+)
+
+# Config settings for common formats
+config_setting(
+    name = "format_pretty",
+    flag_values = {":cucumber_format": "pretty"},
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "format_json",
+    flag_values = {":cucumber_format": "json"},
+    visibility = ["//visibility:public"],
 )
 
 rb_binary(

@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 GherkinInfo = provider(
     "Gherkin info",
@@ -63,13 +64,23 @@ def _gherkin_test(ctx):
 
     support_for_wire = ctx.actions.declare_file("features/support/require_wire.rb")
     ctx.actions.write(support_for_wire, "require 'cucumber/wire'")
+    
 
     # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
     cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
 
     feature_dir = "/".join([ctx.workspace_name, ctx.label.package])
 
-    additional_cucumber_args = " ".join(ctx.attr.additional_cucumber_args)
+    # Read the cucumber format from the build setting
+    cucumber_format = ctx.attr._cucumber_format[BuildSettingInfo].value
+
+    # Create unique output filename for test results (will be written to TEST_UNDECLARED_OUTPUTS_DIR)
+    output_filename = "{}_output_{}.txt".format(test_label.name, cucumber_format)
+
+    # Build cucumber args with format flag
+    additional_cucumber_args = []
+    additional_cucumber_args.append("--format={}".format(cucumber_format))
+    additional_cucumber_args.append("--quiet")
 
     ctx.actions.expand_template(
         output = ctx.outputs.test,
@@ -79,7 +90,8 @@ def _gherkin_test(ctx):
             "{CUCUMBER_RUBY}": cucumber_executable.short_path,
             "{FEATURE_DIR}": feature_dir,
             "{SOCKET}": unique_socket,
-            "{ADDITIONAL_CUCUMBER_ARGS}": additional_cucumber_args,
+            "{ADDITIONAL_CUCUMBER_ARGS}": " ".join(additional_cucumber_args),
+            "{OUTPUT_FILENAME}": output_filename,
         },
     )
     feature_specs = _get_transitive_srcs(None, ctx.attr.deps).to_list()
@@ -108,11 +120,6 @@ gherkin_test = rule(
             providers = [CucumberStepsInfo],
             allow_single_file = True,
         ),
-        "additional_cucumber_args": attr.string_list(
-            doc = "Additional arguments, that shall be passed to the cucumber ruby executable",
-            allow_empty = True,
-            default = ["--publish-quiet"],
-        ),
         "_template": attr.label(
             doc = "The template specification for the executable",
             default = Label("@rules_gherkin//gherkin:cc_gherkin_wire_test.sh.tpl"),
@@ -123,6 +130,10 @@ gherkin_test = rule(
             default = Label("@rules_gherkin//:cucumber_ruby"),
             executable = True,
             cfg = "exec",
+        ),
+        "_cucumber_format": attr.label(
+            doc = "The cucumber output format build setting",
+            default = Label("@rules_gherkin//:cucumber_format"),
         ),
     },
     outputs = {"test": "%{name}.sh"},
