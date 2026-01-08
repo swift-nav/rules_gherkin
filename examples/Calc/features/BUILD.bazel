@@ -15,7 +15,7 @@ gherkin_test(
 # Seperate libs to test parallelization
 gherkin_library(
     name = "addition_feature",
-    srcs = ["addition.feature"]
+    srcs = ["addition.feature"],
 )
 
 gherkin_test(
@@ -26,7 +26,7 @@ gherkin_test(
 
 gherkin_library(
     name = "division_feature",
-    srcs = ["division.feature"]
+    srcs = ["division.feature"],
 )
 
 gherkin_test(
@@ -34,4 +34,3 @@ gherkin_test(
     steps = "//Calc/features/step_definitions:calculator_steps",
     deps = [":division_feature"],
 )
-

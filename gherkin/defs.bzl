@@ -1,5 +1,5 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 
 GherkinInfo = provider(
     "Gherkin info",
@@ -55,7 +55,7 @@ def _gherkin_test(ctx):
     unique_socket = "/tmp/bazel_gherkin-{}-{}-{}.sock".format(
         ctx.workspace_name,
         test_label.package.replace("/", "_"),
-        test_label.name
+        test_label.name,
     )
 
     # Create wire config with unique filename per test
@@ -64,7 +64,6 @@ def _gherkin_test(ctx):
 
     support_for_wire = ctx.actions.declare_file("features/support/require_wire.rb")
     ctx.actions.write(support_for_wire, "require 'cucumber/wire'")
-    
 
     # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
     cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
