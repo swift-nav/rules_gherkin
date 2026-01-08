@@ -1,0 +1,9 @@
+# Dependabot will automatically scan dependencies in each of the
+# listed package ecosystems and will open a PR to update any outdated
+# dependency.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
