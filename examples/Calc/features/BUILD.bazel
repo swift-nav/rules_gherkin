@@ -12,7 +12,7 @@ gherkin_test(
     deps = [":feature_specs"],
 )
 
-# Seperate libs to test parallelization
+# Separate libs to test parallelization
 gherkin_library(
     name = "addition_feature",
     srcs = ["addition.feature"],

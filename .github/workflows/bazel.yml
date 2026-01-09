@@ -8,9 +8,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Checkout source
-        uses: actions/checkout@v5
-
       - uses: bazel-contrib/setup-bazel@0.16.0
         with:
           bazelisk-cache: true
@@ -22,7 +19,7 @@ jobs:
           cd examples
           bazel test //... --test_output=all
 
-      - name: Test Json
+      - name: Test json (uncached test results)
         run: |
           cd examples
-          bazel test --config=json //... --test_output=all
+          bazel test --config=json //... --test_output=all --cache_test_results=no
