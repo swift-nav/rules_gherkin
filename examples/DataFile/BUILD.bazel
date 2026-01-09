@@ -1,0 +1,7 @@
+exports_files(["testdata.txt"])
+
+filegroup(
+    name = "testdata",
+    srcs = ["testdata.txt"],
+    visibility = ["//visibility:public"],
+)

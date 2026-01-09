@@ -1,0 +1,12 @@
+load("@rules_gherkin//gherkin:defs.bzl", "gherkin_library", "gherkin_test")
+
+gherkin_library(
+    name = "datafile_feature",
+    srcs = ["datafile.feature"],
+)
+
+gherkin_test(
+    name = "datafile_test",
+    steps = "//DataFile/features/step_definitions:datafile_steps",
+    deps = [":datafile_feature"],
+)

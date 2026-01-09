@@ -1,0 +1,15 @@
+load("@rules_gherkin//gherkin:defs.bzl", "cc_gherkin_steps")
+
+cc_gherkin_steps(
+    name = "datafile_steps",
+    srcs = [
+        "DataFileSteps.cpp",
+    ],
+    data = ["//DataFile:testdata"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@cucumber-cpp//:cucumber-cpp",
+        "@googletest//:gtest_main",
+        "@rules_cc//cc/runfiles",
+    ],
+)
