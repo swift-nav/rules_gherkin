@@ -83,14 +83,16 @@ def _gherkin_test(ctx):
     feature_files = []
     feature_run_list = []
     for spec in feature_specs:
-        spec_basename = spec.files.to_list()[0].basename
+        spec_file = spec.files.to_list()[0]
+        spec_basename = spec_file.basename
         f = ctx.actions.declare_file("features/" + spec_basename)
         feature_files.append(f)
-        ctx.actions.symlink(output = f, target_file = spec.files.to_list()[0])
+        ctx.actions.symlink(output = f, target_file = spec_file)
 
-        # Create unique output filename for each feature file
-        feature_name = spec_basename.replace(".feature", "")
-        output_filename = "{}_{}_output_{}.txt".format(test_label.name, feature_name, cucumber_format)
+        # Create unique output filename for each feature file by encoding the path
+        # Replace path separators to avoid collisions when multiple files have the same basename
+        encoded_path = spec_file.short_path.replace("/", "_").replace(".feature", "")
+        output_filename = "{}_{}_output_{}.txt".format(test_label.name, encoded_path, cucumber_format)
         # Format: feature_path:output_filename (separated by colon for easy parsing in bash)
         feature_run_list.append("features/{}:{}".format(spec_basename, output_filename))
 
