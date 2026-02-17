@@ -77,6 +77,7 @@ def _gherkin_test(ctx):
     additional_cucumber_args = []
     additional_cucumber_args.append("--format={}".format(cucumber_format))
     additional_cucumber_args.append("--quiet")
+    additional_cucumber_args.extend(ctx.attr.additional_cucumber_args)
 
     # Get all feature specs and build a list of feature files with their output filenames
     feature_specs = _get_transitive_srcs(None, ctx.attr.deps).to_list()
@@ -126,6 +127,9 @@ gherkin_test = rule(
             doc = "The steps implementation to test the gherkin features against",
             providers = [CucumberStepsInfo],
             allow_single_file = True,
+        ),
+        "additional_cucumber_args": attr.string_list(
+            doc = "Additional command line arguments to pass to cucumber when executing the test",
         ),
         "_template": attr.label(
             doc = "The template specification for the executable",
