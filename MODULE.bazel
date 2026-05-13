@@ -4,7 +4,7 @@ module(
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
-bazel_dep(name = "rules_cc", version = "0.0.16")
+bazel_dep(name = "rules_cc", version = "0.2.8")
 
 # Note: rules_gherkin no longer owns the cucumber Ruby bundle. Consumers
 # declare their own `ruby.bundle_fetch(...)` and wrap it in an `rb_binary`,
