@@ -94,6 +94,7 @@ def _gherkin_test(ctx):
         # Replace path separators to avoid collisions when multiple files have the same basename
         encoded_path = spec_file.short_path.replace("/", "_").replace(".feature", "")
         output_filename = "{}_{}_output_{}.txt".format(test_label.name, encoded_path, cucumber_format)
+
         # Format: feature_path:output_filename (separated by colon for easy parsing in bash)
         feature_run_list.append("features/{}:{}".format(spec_basename, output_filename))
 
