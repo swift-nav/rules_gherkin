@@ -1,0 +1,12 @@
+load("@rules_ruby//ruby:defs.bzl", "rb_binary")
+
+# Cucumber Ruby CLI, sourced from the workspace-local @cucumber bundle declared
+# in MODULE.bazel. This is what each `gherkin_test` invokes to run feature
+# files against the C++ step-server. rules_gherkin no longer owns this binary
+# (it would hardcode the bundle repo name), so consumers wire it up here.
+rb_binary(
+    name = "cucumber_ruby",
+    main = "@cucumber//bin:private/cucumber",
+    visibility = ["//visibility:public"],
+    deps = ["@cucumber"],
+)

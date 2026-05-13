@@ -11,6 +11,7 @@ gherkin_library(
 
 gherkin_test(
     name = "calc_test",
+    cucumber_ruby = "//:cucumber_ruby",
     steps = "//Calc/features/step_definitions:calculator_steps",
     deps = [":feature_specs"],
 )
@@ -23,6 +24,7 @@ gherkin_library(
 
 gherkin_test(
     name = "addition_test",
+    cucumber_ruby = "//:cucumber_ruby",
     steps = "//Calc/features/step_definitions:calculator_steps",
     deps = [":addition_feature"],
 )
@@ -34,6 +36,7 @@ gherkin_library(
 
 gherkin_test(
     name = "division_test",
+    cucumber_ruby = "//:cucumber_ruby",
     steps = "//Calc/features/step_definitions:calculator_steps",
     deps = [":division_feature"],
 )
@@ -47,6 +50,7 @@ gherkin_library(
 
 gherkin_test(
     name = "failure_test",
+    cucumber_ruby = "//:cucumber_ruby",
     steps = "//Calc/features/step_definitions:calculator_steps",
     deps = [":failure_feature"],
     tags = ["manual"],  # Marked as manual since it's expected to fail

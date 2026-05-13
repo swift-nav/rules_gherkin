@@ -66,7 +66,7 @@ def _gherkin_test(ctx):
     ctx.actions.write(support_for_wire, "require 'cucumber/wire'")
 
     # Get the executable from rb_binary (new rules_ruby produces FilesToRunProvider)
-    cucumber_executable = ctx.attr._cucumber_ruby[DefaultInfo].files_to_run.executable
+    cucumber_executable = ctx.attr.cucumber_ruby[DefaultInfo].files_to_run.executable
 
     feature_dir = "/".join([ctx.workspace_name, ctx.label.package])
 
@@ -112,7 +112,7 @@ def _gherkin_test(ctx):
 
     runfiles = ctx.runfiles(files = [ctx.file.steps, cucumber_wire_config, support_for_wire] + feature_files)
     runfiles = runfiles.merge(ctx.attr.steps.default_runfiles)
-    runfiles = runfiles.merge(ctx.attr._cucumber_ruby.default_runfiles)
+    runfiles = runfiles.merge(ctx.attr.cucumber_ruby.default_runfiles)
 
     return [DefaultInfo(executable = ctx.outputs.test, runfiles = runfiles)]
 
@@ -131,16 +131,20 @@ gherkin_test = rule(
         "additional_cucumber_args": attr.string_list(
             doc = "Additional command line arguments to pass to cucumber when executing the test",
         ),
+        "cucumber_ruby": attr.label(
+            doc = "rb_binary that runs the Cucumber Ruby CLI. " +
+                  "The consumer must provide an rb_binary whose `main` is the cucumber " +
+                  "executable from a workspace-local Ruby bundle (e.g. one declared via " +
+                  "`ruby.bundle_fetch(...)`). rules_gherkin no longer hardcodes a bundle " +
+                  "repo name; see README.md for the setup pattern.",
+            mandatory = True,
+            executable = True,
+            cfg = "exec",
+        ),
         "_template": attr.label(
             doc = "The template specification for the executable",
             default = Label("@rules_gherkin//gherkin:cc_gherkin_wire_test.sh.tpl"),
             allow_single_file = True,
-        ),
-        "_cucumber_ruby": attr.label(
-            doc = "The path to cucumber ruby",
-            default = Label("@rules_gherkin//:cucumber_ruby"),
-            executable = True,
-            cfg = "exec",
         ),
         "_cucumber_format": attr.label(
             doc = "The cucumber output format build setting",
