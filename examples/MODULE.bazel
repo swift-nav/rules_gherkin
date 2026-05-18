@@ -7,6 +7,8 @@ local_path_override(
 bazel_dep(name = "rules_cc", version = "0.2.18")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
 bazel_dep(name = "cucumber-cpp", version = "0.8.0.bcr.1")
+# Bazel 9 compatibility
+bazel_dep(name = "rules_go", version = "0.60.0", repo_name = "")
 
 # Ruby SDK setup
 bazel_dep(name = "rules_ruby", version = "0.25.0")
